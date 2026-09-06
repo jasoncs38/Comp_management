@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+.env
+instance/
+comp_management/static/images/*

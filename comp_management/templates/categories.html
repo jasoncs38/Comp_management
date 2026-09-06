@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>All Categories</title>
+      <style>
+            .flash-message {
+                display: inline-block;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                vertical-align: center;
+                
+            }
+
+            .flash-message.success {
+                background-color: #e8f7e8;
+                color: #237a23;
+                border: 1px solid #a8d8a8;
+            }
+
+            .flash-message.danger {
+                background-color: #fdeaea;
+                color: #b42323;
+                border: 1px solid #f0aaaa;
+            }
+      </style>
+  </head>
+    <body>
+            {% with messages=get_flashed_messages(with_categories=true)%}
+              {%if messages%}
+                    {%for category,message in messages%}
+                        <div class="flash-message {{category}}">
+                            {{message}}
+                        </div>
+                    {%endfor%}
+              {%endif%}
+           {%endwith%}
+            <a href="{{ url_for('admin_dashboard') }}">Home</a>
+
+            <h3>All Categories</h3>
+                
+                    {%if categories%}
+                       <ol>
+                        {%for category in categories%}  
+                            
+                                <li>   
+                                        <strong>{{category.name }} ({{ category.complaints|length}} complaints )</strong>
+                                        <a href="{{ url_for('edit_category',cat_id=category.id)}}">Edit</a>
+                                        {%if category.name!='Other'%}
+                                        <form method="POST"
+                                            action="{{ url_for('delete_category', cat_id=category.id) }}"
+                                            style="display:inline;">
+                                            <button type="submit"
+                                                    onclick="return confirm('Are you sure you want to delete this Category?')">
+                                                Delete
+                                            </button>
+                                        </form>
+                                        {%endif%}
+                                </li>
+                            
+                            
+                        {%endfor%}
+                        </ol>
+
+                    {%else%}
+                        
+                        <strong>There are no categories yet.</strong>
+
+                    {%endif%}
+                <a href="{{url_for('add_category')}}" >
+                    Add
+                </a>
+  </body>
+
+</html>

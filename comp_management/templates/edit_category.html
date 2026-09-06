@@ -1,0 +1,50 @@
+                
+<!DOCTYPE html>
+<html>
+  <head>
+      <title>Edit category</title>
+        <style>
+
+            .name-bar{
+                display: block;
+                margin-bottom: 10px;
+            }
+            
+            .field-error {
+                color: red;
+                font-size: 13px;
+                margin-top: -5px;
+                margin-bottom: 10px;
+            }
+
+            .error-input {
+                border: 1px solid red;
+            }
+
+        </style>
+  </head>
+  <body>
+    <a href="{{ url_for('categories') }}">Back</a>
+                <form method="POST" action="" novalidate >
+
+                            <h1>Edit Category</h1>
+                            {{ form.hidden_tag() }}
+
+                            {{ form.name.label }}
+                            {%if form.name.errors%}
+                            {{form.name(class="name-bar error-input",placeholder="Name") }}
+                            <div class="field-error">
+                                {%for error in form.name.errors%}
+                                    <span>{{error}}</span>
+                                    {%endfor%}
+                            </div>
+                            {%else%}
+                                    {{ form.name(class="name-bar",placeholder="Name") }}
+                            {%endif%}
+
+                            {{ form.submit }}
+
+                </form>
+  </body>
+
+</html>

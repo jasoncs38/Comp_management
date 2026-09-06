@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+     <title>Home</title>
+     <style>
+            .flash-message {
+                display: inline-block;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                vertical-align: center;
+                
+            }
+
+            .flash-message.success {
+                background-color: #e8f7e8;
+                color: #237a23;
+                border: 1px solid #a8d8a8;
+            }
+
+            .flash-message.danger {
+                background-color: #fdeaea;
+                color: #b42323;
+                border: 1px solid #f0aaaa;
+            }
+            .complaint-container {
+                border-color: #40b9ff;
+                border: solid;
+                margin: 10px;
+                padding: 10px;
+                width: 300px;
+                background-color: white;
+            }
+            .complaint-container.unread {
+                background-color: #e6f4ff;
+            }
+            .complaints-header{
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                width:400px;
+                margin-left: 100px;
+            }
+            .unread {
+                font-weight: bold;
+                border-width: 2px;
+            }
+
+     </style>
+    </head>
+    <body>
+            {% with messages=get_flashed_messages(with_categories=true)%}
+              {%if messages%}
+                    {%for category,message in messages%}
+                        <div class="flash-message {{category}}">
+                            {{message}}
+                        </div>
+                    {%endfor%}
+              {%endif%}
+           {%endwith%}
+        <a href="{{ url_for('home') }}">Home</a> 
+        {%if all_notifications %}
+                        <h1>Notifications</h1>
+                        {% for notification in all_notifications %}
+                            <div class="complaint-container
+                                {% if not notification.is_read %}unread{% endif %}">
+                                <a href="{{ url_for('view_notification',notification_id=notification.id) }}">
+                                    {{ notification.message }}
+                                </a>
+                                <small>
+                                    {{ notification.date_created.strftime('%Y-%m-%d') }}
+                                </small>
+
+                            </div>
+
+                        {% endfor %}
+          
+
+        {% else %}
+
+            <h1>No Notifications Yet.</h1>
+        {%endif%}
+    </body>
+</html>            
+            

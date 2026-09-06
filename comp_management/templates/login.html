@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>login</title>
+        
+        <style>
+            .username-bar{
+                display: block;
+                margin-bottom: 10px;
+                padding: 6px;
+                width: 200px;
+            }
+            .email-bar{
+
+                display: block;
+                margin-bottom: 10px;
+                padding: 6px;
+                width: 200px;
+
+            }
+            .password-bar{
+                display: block;
+                margin-bottom: 10px;
+                padding: 6px;
+                width: 200px;
+            }
+            .confirm_password-bar{
+                display: block;
+                margin-bottom: 10px;
+                padding: 6px;
+                width: 200px;
+            }
+            .field-error {
+                color: red;
+                font-size: 13px;
+                margin-top: -5px;
+                margin-bottom: 10px;
+            }
+
+            .error-input {
+                border: 1px solid red;
+            }
+
+            .flash-message {
+                display: inline-block;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                
+            }
+
+            .flash-message.success {
+                background-color: #e8f7e8;
+                color: #237a23;
+                border: 1px solid #a8d8a8;
+            }
+
+            .flash-message.danger {
+                background-color: #fdeaea;
+                color: #b42323;
+                border: 1px solid #f0aaaa;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="sign-in-container">
+<form method="POST" action="" novalidate>
+           {% with messages=get_flashed_messages(with_categories=true)%}
+              {%if messages%}
+                    {%for category,message in messages%}
+                        <div class="flash-message {{category}}">
+                            {{message}}
+                        </div>
+                    {%endfor%}
+              {%endif%}
+           {%endwith%}
+            <h1>Sign In</h1>
+            {{ form.hidden_tag() }}
+
+            {{ form.email.label }}
+            {%if form.email.errors%}
+               {{form.email(class="email-bar error-input",placeholder="Email") }}
+               <div class="field-error">
+                   {%for error in form.email.errors%}
+                     <span>{{error}}</span>
+                    {%endfor%}
+               </div>
+               {%else%}
+                    {{ form.email(class="email-bar",placeholder="Email") }}
+            {%endif%}
+
+            {{ form.password.label }}
+            {%if form.password.errors%}
+               {{form.password(class="password-bar error-input",placeholder="Password") }}
+               <div class="field-error">
+                   {%for error in form.password.errors%}
+                     <span>{{error}}</span>
+                    {%endfor%}
+               </div>
+               {%else%}
+                    {{ form.password(class="password-bar",placeholder="Password") }}
+            {%endif%}
+
+            <div class="options">
+                <label class="remember">
+                    {{ form.remember }}
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-password">
+                    Forgot Password?
+                </a>
+
+            </div>
+
+
+            {{ form.submit }}
+
+            <p class="signup">
+                Don't have an account?
+                <a href="{{ url_for('register') }}">Sign Up Now</a>
+            </p>
+
+</form>
+
+
+        </div>
+
+    </body>
+</html>

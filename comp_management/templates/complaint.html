@@ -1,0 +1,142 @@
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>New Complaint</title>
+        
+        <style>
+            .title-bar{
+                display: block;
+                margin-bottom: 10px;
+                padding: 6px;
+                width: 200px;
+            }
+            .content-bar{
+
+                display: block;
+                margin-bottom: 10px;
+
+
+
+            }
+            .category-bar{
+                display: block;
+                margin-bottom: 10px;
+            }
+            .image-bar{
+                display: block;
+                margin-bottom: 10px;
+                width: 200px;
+            }
+            .field-error {
+                color: red;
+                font-size: 13px;
+                margin-top: -5px;
+                margin-bottom: 10px;
+            }
+
+            .error-input {
+                border: 1px solid red;
+            }
+
+            .flash-message {
+                display: inline-block;
+                padding: 12px 16px;
+                margin-bottom: 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                
+            }
+
+            .flash-message.success {
+                background-color: #e8f7e8;
+                color: #237a23;
+                border: 1px solid #a8d8a8;
+            }
+
+            .flash-message.danger {
+                background-color: #fdeaea;
+                color: #b42323;
+                border: 1px solid #f0aaaa;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="sign-in-container">
+<form method="POST" action="" novalidate enctype="multipart/form-data">
+           {% with messages=get_flashed_messages(with_categories=true)%}
+              {%if messages%}
+                    {%for category,message in messages%}
+                        <div class="flash-message {{category}}">
+                            {{message}}
+                        </div>
+                    {%endfor%}
+              {%endif%}
+           {%endwith%}
+            <h1>New Complaint</h1>
+            {{ form.hidden_tag() }}
+
+            {{ form.title.label }}
+           
+            {%if form.title.errors%}
+               {{form.title(class="title-bar error-input",placeholder="Title") }}
+               <div class="field-error">
+                   {%for error in form.title.errors%}
+                     <span>{{error}}</span>
+                    {%endfor%}
+               </div>
+               {%else%}
+                    {{ form.title(class="title-bar",placeholder="Title") }}
+            {%endif%}
+
+
+            {{ form.content.label }}
+            {%if form.content.errors%}
+               {{form.content(class="content-bar error-input",placeholder="Content") }}
+               <div class="field-error">
+                   {%for error in form.content.errors%}
+                     <span>{{error}}</span>
+                    {%endfor%}
+               </div>
+               {%else%}
+                    {{ form.content(class="content-bar",placeholder="Content") }}
+            {%endif%}
+
+            {{ form.category.label }}
+            {%if form.category.errors%}
+               {{form.category(class="category-bar error-input") }}
+               <div class="field-error">
+                   {%for error in form.category.errors%}
+                     <span>{{error}}</span>
+                    {%endfor%}
+               </div>
+               {%else%}
+                    {{ form.category(class="category-bar") }}
+            {%endif%}
+
+
+            {{ form.image.label }}
+            {%if form.image.errors%}
+               {{form.image(class="error-input")}}
+               <div class="field-error">
+                   {%for error in form.image.errors%}
+                     <span>{{error}}</span>
+                    {%endfor%}
+               </div>
+               {%else%}
+                    {{ form.image(class="image-bar") }}
+            {%endif%}
+
+
+            {{ form.submit }}
+
+</form>
+
+
+        </div>
+
+    </body>
+</html>
+
