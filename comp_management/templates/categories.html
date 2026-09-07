@@ -1,76 +1,87 @@
-<!DOCTYPE html>
-<html>
-  <head>
-      <title>All Categories</title>
-      <style>
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                vertical-align: center;
-                
-            }
+{% extends "base.html" %}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+{% block title %}Manage Categories - Admin Portal{% endblock %}
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
-      </style>
-  </head>
-    <body>
-            {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
-            <a href="{{ url_for('admin_dashboard') }}">Home</a>
+{% block content %}
+<div class="card" style="margin-bottom: 1.5rem;">
 
-            <h3>All Categories</h3>
-                
-                    {%if categories%}
-                       <ol>
-                        {%for category in categories%}  
-                            
-                                <li>   
-                                        <strong>{{category.name }} ({{ category.complaints|length}} complaints )</strong>
-                                        <a href="{{ url_for('edit_category',cat_id=category.id)}}">Edit</a>
-                                        {%if category.name!='Other'%}
-                                        <form method="POST"
-                                            action="{{ url_for('delete_category', cat_id=category.id) }}"
-                                            style="display:inline;">
-                                            <button type="submit"
-                                                    onclick="return confirm('Are you sure you want to delete this Category?')">
-                                                Delete
-                                            </button>
-                                        </form>
-                                        {%endif%}
-                                </li>
-                            
-                            
-                        {%endfor%}
-                        </ol>
+  <!-- Header & Add Button -->
+  <div class="admin-page-header" style="flex-direction: row; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 class="page-title">Complaint Categories</h1>
+      <p class="page-subtitle">Configure campus departments and service routing categories.</p>
+    </div>
+    <a href="{{ url_for('add_category') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600;">
+      + Add New Category
+    </a>
+  </div>
 
-                    {%else%}
-                        
-                        <strong>There are no categories yet.</strong>
+  <!-- Categories Grid / List -->
+  {% if categories %}
+    <div class="category-grid" style="margin-top: 1.5rem;">
+      {% for category in categories %}
+        <div class="category-row-card">
+          
+          <div class="category-info-side">
+            <!-- AFTER -->
+                <span class="category-avatar-badge">
+                  <svg class="ui-icon" style="width: 1.15rem; height: 1.15rem; stroke: #2563EB;" viewBox="0 0 24 24">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                  </svg>
+                </span>
+            <div>
+              <a href="{{ url_for('category_complaints', cat_id=category.id) }}" class="category-name-link">
+                    <h2 class="category-name-text">{{ category.name }}</h2>
+                  </a>
+              <span class="category-ticket-counter">
+                {{ category.complaints|length }} {{ 'complaint' if category.complaints|length == 1 else 'complaints' }} assigned
+              </span>
+            </div>
+          </div>
 
-                    {%endif%}
-                <a href="{{url_for('add_category')}}" >
-                    Add
-                </a>
-  </body>
+          <!-- Actions Group -->
+          <div class="category-actions-group">
+            <a href="{{ url_for('edit_category', cat_id=category.id) }}" class="btn-cat-edit">
+              Edit
+            </a>
 
-</html>
+            {% if category.name != 'Other' %}
+              <form method="POST" action="{{ url_for('delete_category', cat_id=category.id) }}" style="display:inline;">
+                <button 
+                  type="submit" 
+                  class="btn-cat-delete"
+                  onclick="return confirm('Are you sure you want to delete the \'{{ category.name }}\' category?');">
+                  Delete
+                </button>
+              </form>
+            {% else %}
+              <span class="protected-cat-badge" title="Default fallback category cannot be deleted">System Default</span>
+            {% endif %}
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- Empty State -->
+    <div style="text-align: center; padding: 4rem 1.5rem;">
+        <div class="empty-state-icon-wrapper">
+          <svg class="ui-icon" style="width: 2.75rem; height: 2.75rem; stroke: #94A3B8;" viewBox="0 0 24 24">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+            <line x1="7" y1="7" x2="7.01" y2="7"/>
+          </svg>
+        </div>
+      <h2 style="font-size: 1.15rem; font-weight: 600; color: #1E293B; margin-bottom: 0.25rem;">No Categories Established</h2>
+      <p style="color: #64748B; font-size: 0.875rem; max-width: 400px; margin: 0 auto 1.5rem auto;">
+        Create departmental groups (e.g., Cafeteria, ICT, Dormitory) to let students properly direct their issues.
+      </p>
+      <a href="{{ url_for('add_category') }}" class="btn btn-primary">
+        Create First Category
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,142 +1,96 @@
+{% extends "base.html" %}
 
+{% block title %}New Complaint - ASTU Portal{% endblock %}
 
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>New Complaint</title>
-        
-        <style>
-            .title-bar{
-                display: block;
-                margin-bottom: 10px;
-                padding: 6px;
-                width: 200px;
-            }
-            .content-bar{
+{% block content %}
+<div class="form-page-wrapper">
+  <div class="card form-page-card">
 
-                display: block;
-                margin-bottom: 10px;
+    <!-- Card Header -->
+    <div class="form-page-header">
+      <div class="auth-icon-badge" style="width: 44px; height: 44px; margin-bottom: 0.75rem;">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+      </div>
+      <h1 class="auth-title">File a Complaint</h1>
+      <p class="auth-subtitle">Describe the problem so responsible offices can inspect and resolve it.</p>
+    </div>
 
+    <!-- Complaint Form -->
+    <form method="POST" action="{{ url_for('complaint') }}" enctype="multipart/form-data" novalidate>
+      {{ form.hidden_tag() }}
 
+      <!-- Title Field -->
+      <div class="form-group">
+        {{ form.title.label(class="form-label") }}
+        {% if form.title.errors %}
+          {{ form.title(class="form-control error-input", placeholder="e.g., Water shortage") }}
+          <div class="field-error">
+            {% for error in form.title.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.title(class="form-control", placeholder="e.g., Water shortage") }}
+        {% endif %}
+      </div>
 
-            }
-            .category-bar{
-                display: block;
-                margin-bottom: 10px;
-            }
-            .image-bar{
-                display: block;
-                margin-bottom: 10px;
-                width: 200px;
-            }
-            .field-error {
-                color: red;
-                font-size: 13px;
-                margin-top: -5px;
-                margin-bottom: 10px;
-            }
+      <!-- Category Dropdown -->
+      <div class="form-group">
+        {{ form.category.label(class="form-label") }}
+        {% if form.category.errors %}
+          {{ form.category(class="form-control error-input") }}
+          <div class="field-error">
+            {% for error in form.category.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.category(class="form-control") }}
+        {% endif %}
+      </div>
 
-            .error-input {
-                border: 1px solid red;
-            }
+      <!-- Content / Description Field -->
+      <div class="form-group">
+        {{ form.content.label(class="form-label") }}
+        {% if form.content.errors %}
+          {{ form.content(class="form-control error-input", rows="5", placeholder="Provide clear details, room number, or specific location regarding the issue...") }}
+          <div class="field-error">
+            {% for error in form.content.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.content(class="form-control", rows="5", placeholder="Provide clear details, room number, or specific location regarding the issue...") }}
+        {% endif %}
+      </div>
 
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                
-            }
-
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
-
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
-
-        </style>
-    </head>
-    <body>
-        <div class="sign-in-container">
-<form method="POST" action="" novalidate enctype="multipart/form-data">
-           {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
-            <h1>New Complaint</h1>
-            {{ form.hidden_tag() }}
-
-            {{ form.title.label }}
-           
-            {%if form.title.errors%}
-               {{form.title(class="title-bar error-input",placeholder="Title") }}
-               <div class="field-error">
-                   {%for error in form.title.errors%}
-                     <span>{{error}}</span>
-                    {%endfor%}
-               </div>
-               {%else%}
-                    {{ form.title(class="title-bar",placeholder="Title") }}
-            {%endif%}
-
-
-            {{ form.content.label }}
-            {%if form.content.errors%}
-               {{form.content(class="content-bar error-input",placeholder="Content") }}
-               <div class="field-error">
-                   {%for error in form.content.errors%}
-                     <span>{{error}}</span>
-                    {%endfor%}
-               </div>
-               {%else%}
-                    {{ form.content(class="content-bar",placeholder="Content") }}
-            {%endif%}
-
-            {{ form.category.label }}
-            {%if form.category.errors%}
-               {{form.category(class="category-bar error-input") }}
-               <div class="field-error">
-                   {%for error in form.category.errors%}
-                     <span>{{error}}</span>
-                    {%endfor%}
-               </div>
-               {%else%}
-                    {{ form.category(class="category-bar") }}
-            {%endif%}
-
-
-            {{ form.image.label }}
-            {%if form.image.errors%}
-               {{form.image(class="error-input")}}
-               <div class="field-error">
-                   {%for error in form.image.errors%}
-                     <span>{{error}}</span>
-                    {%endfor%}
-               </div>
-               {%else%}
-                    {{ form.image(class="image-bar") }}
-            {%endif%}
-
-
-            {{ form.submit }}
-
-</form>
-
-
+      <!-- Image File Upload (Optional) -->
+      <div class="form-group">
+        {{ form.image.label(class="form-label") }}
+        <div class="file-upload-wrapper">
+          {{ form.image(class="file-input-control") }}
+          <small class="file-helper-text">Optional: Attach a clear photo showing the damage or issues.</small>
         </div>
+        {% if form.image.errors %}
+          <div class="field-error">
+            {% for error in form.image.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
 
-    </body>
-</html>
+      <!-- Form Actions -->
+      <div class="form-actions-row">
+        {{ form.submit(class="btn btn-primary btn-submit-complaint") }}
+        <a href="{{ url_for('home') }}" class="btn btn-sm btn-cancel">
+          Cancel
+        </a>
+      </div>
 
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,112 +1,134 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ complaint.title }}</title>
-    <style>
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                
-            }
+{% extends "base.html" %}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+{% block title %}{{ complaint.title }}{% endblock %}
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
+{% block content %}
+<div class="view-wrapper">
 
-    </style>
-</head>
-
-<body>
-        {% with messages=get_flashed_messages(with_categories=true)%}
-            {%if messages%}
-                {%for category,message in messages%}
-                    <div class="flash-message {{category}}">
-                        {{message}}
-                    </div>
-                {%endfor%}
-            {%endif%}
-        {%endwith%}
-    {%if current_user.is_admin %}
-       <a href="{{ url_for('admin_dashboard') }}">Home</a> 
-       <a href="{{ url_for('all_complaints') }}">Back</a>    
-    {%endif%}
-    <h1>{{ complaint.title }}</h1>
-
-    <p>
-        <strong>Category:</strong>
-        {{ complaint.category.name }}
-    </p>
-
-    <p>
-        <strong>Status:</strong>
-        {{ complaint.status }}
-    </p>
-
-    <p>
-        <strong>Submitted:</strong>
-        {{ complaint.date_posted.strftime('%Y-%m-%d') }}
-    </p>
-
-    <hr>
-
-    <h3>Complaint</h3>
-    <p>{{ complaint.content }}</p>
-
-    {% if complaint.image_file %}
-        <img
-            src="{{ url_for('static', filename='images/' + complaint.image_file) }}"
-            width="300"
-        >
+  <!-- Top Navigation & Return Bar -->
+  <div class="view-top-bar">
+    {% if current_user.is_admin %}
+      <a href="{{ url_for('all_complaints') }}" class="btn-back">&larr; Back to All Complaints</a>
+    {% else %}
+      <a href="{{ url_for('home') }}" class="btn-back">&larr; Back to My Complaints</a>
     {% endif %}
 
-    <br><br>
-    <h3>Responses</h3>
-    {%if complaint.responses %}
-       {%for response in complaint.responses %}
-          <p>{{response.admin.username}} <small>({{response.date_posted.strftime('%Y-%m-%d') }})</small></p>
-          <p>{{ response.content }}</p>
-       {%endfor%}
-       
-       {%if not current_user.is_admin and complaint.status=='Resolved'%}
-           <p><strong>✓ Your complaint has been resolved.</strong></p>
-       {%endif%}
+    <div class="meta-status">
+      <span class="badge badge-{{ complaint.status.lower().replace(' ', '-') }}">
+        {{ complaint.status }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Primary Complaint Card -->
+  <div class="card detail-card">
+<div class="detail-header">
+      <div>
+        <div class="detail-category">
+          <span class="category-tag">{{ complaint.category.name if complaint.category else 'General' }}</span>
+          <span class="date-tag">Submitted on {{ complaint.date_posted.strftime('%b %d, %Y - %I:%M %p') if complaint.date_posted else '' }}</span>
+        </div>
+        <h1 class="detail-title">{{ complaint.title }}</h1>
+      </div>
+
+      <!-- Prominent Student Identity Badge (Admin Only) -->
+      {% if current_user.is_admin and complaint.author %}
+        <div class="student-author-card">
+          <div class="student-avatar-circle">
+            {{ complaint.author.username[0] | upper }}
+          </div>
+          <div class="student-details">
+            <span class="student-username">{{ complaint.author.username }}</span>
+            <span class="student-email">{{ complaint.author.email }}</span>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Description Content -->
+    <div class="complaint-body">
+      <h3>Description</h3>
+      <p class="complaint-text">{{ complaint.content }}</p>
+    </div>
+
+    <!-- Optional Attachment Preview -->
+    {% if complaint.image_file %}
+      <div class="attachment-section">
+        <h3>Attached Photo</h3>
+        <div class="attachment-box">
+          <a href="{{ url_for('static', filename='images/' + complaint.image_file) }}" target="_blank" title="Click to view full image">
+            <img 
+              src="{{ url_for('static', filename='images/' + complaint.image_file) }}" 
+              alt="Attachment for {{ complaint.title }}"
+              class="attachment-img"
+            >
+          </a>
+          <small class="attachment-caption">Click the image to expand in a new tab</small>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Admin Actions Row -->
+    {% if current_user.is_admin %}
+      <div class="admin-actions-bar">
+        {% if complaint.status != 'Resolved' %}
+          <a href="{{ url_for('response', complaint_id=complaint.id) }}" class="btn btn-primary btn-sm">
+            Write a Response
+          </a>
+          <form method="POST" action="{{ url_for('resolve_complaint', complaint_id=complaint.id) }}" style="display:inline;">
+            {{ resolve_form.hidden_tag() }}
+            <button 
+              type="submit" 
+              class="btn btn-sm btn-resolve"
+              onclick="return confirm('Are you sure you want to mark this complaint as resolved?');">
+              ✓ Mark as Resolved
+            </button>
+          </form>
+        {% else %}
+          <div class="resolved-notice">
+            <span class="check-icon">✓</span>
+            <span>This complaint is marked as <strong>Resolved</strong>.</span>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Responses / Updates Thread -->
+  <div class="card response-card-container">
+    <h2 class="section-heading">Official Responses & History</h2>
+
+    {% if complaint.responses %}
+      <div class="responses-timeline">
+        {% for response in complaint.responses %}
+          <div class="response-entry">
+            <div class="response-header">
+              <div class="responder-info">
+                <span class="admin-avatar">A</span>
+                <strong>{{ response.admin.username }}</strong>
+                <span class="admin-role-label">Staff Response</span>
+              </div>
+              <span class="response-date">
+                {{ response.date_posted.strftime('%b %d, %Y - %I:%M %p') if response.date_posted else '' }}
+              </span>
+            </div>
+            <p class="response-message">{{ response.content }}</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if not current_user.is_admin and complaint.status == 'Resolved' %}
+        <div class="resolved-banner-user">
+          ✓ Your complaint has been reviewed and resolved by administrators.
+        </div>
+      {% endif %}
 
     {% else %}
-        <p>No response yet.</p>
-    {%endif%}
-    {%if current_user.is_admin %}
-            {% if complaint.status != 'Resolved' %}
-                <a href="{{ url_for('response', complaint_id=complaint.id) }}">
-                    Write a response</a>
-                <form method="POST"
-                    action="{{ url_for('resolve_complaint', complaint_id=complaint.id) }}"
-                    style="display:inline;">
-                    {{ resolve_form.hidden_tag() }}
-                    <button
-                        type="submit"
-                        onclick="return confirm('Are you sure you want to mark this complaint as resolved?')">
-                        Mark as Resolved
-                    </button>
-                </form>
-            {% else %}
-                <p><strong>✓ This complaint has been resolved.</strong></p>
-            {% endif %}
-    {%else%}
-       <a href="{{ url_for('home') }}">Back to My Complaints</a>   
-    {%endif%}
+      <div class="empty-responses">
+        <p>No official updates or responses posted for this complaint yet.</p>
+      </div>
+    {% endif %}
+  </div>
 
-    
-
-</body>
-</html>
+</div>
+{% endblock %}

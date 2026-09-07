@@ -1,89 +1,91 @@
-<!DOCTYPE html>
-<html>
-  <head>
-      <title>All Users</title>
-      <style>
-             .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                vertical-align: center;
-                
-            }
+{% extends "base.html" %}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+{% block title %}User Management - Admin Portal{% endblock %}
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
-          </style>
-  </head>
-  <body>
-            {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
-    <a href="{{ url_for('admin_dashboard') }}">Home</a>
-    <h1>All Users</h1>
-         <ol>
+{% block content %}
+<div class="card" style="margin-bottom: 1.5rem;">
+
+  <!-- Header -->
+  <div class="admin-page-header" style="flex-direction: row; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 class="page-title">User Directory</h1>
+      <p class="page-subtitle">Manage registered accounts, view permissions, and assign administrative roles.</p>
+    </div>
+    <span class="user-total-badge">
+      Total Accounts: <strong>{{ users|length }}</strong>
+    </span>
+  </div>
+
+  <!-- User Card Grid -->
+  {% if users %}
+    <div class="user-management-grid" style="margin-top: 1.5rem;">
+      {% for user in users %}
+        <div class="user-row-card">
           
-            {%for user in users%}
-             {%if user.is_admin%}
-               
-                    <li>
-                            {%if user.is_main_admin%}
-                                  <strong>Main Admin</strong>
-                            {%else%}
-                               <strong>Admin</strong>
-                            {%endif%}
-                            <p>{{user.username}}</p>
-                            <p>{{user.email}}</p>
-                              {% if user.id != current_user.id and not user.is_main_admin %}
-                                  <form method="POST"
-                                        action="{{ url_for('remove_admin', user_id=user.id) }}"
-                                        style="display:inline;">
-                                      <button type="submit"
-                                              onclick="return confirm('Are you sure you want to Remove this Admin?')">
-                                          Remove Admin
-                                      </button>
-                                  </form>
-                              {% endif %}
-                            
-                    </li>
-               
+          <!-- Left: Avatar & Identity -->
+          <div class="user-info-side">
+            <div class="user-avatar-badge {% if user.is_main_admin %}avatar-main{% elif user.is_admin %}avatar-admin{% endif %}">
+              {{ user.username[0] | upper }}
+            </div>
+            <div>
+              <div class="user-name-line">
+                <h2 class="user-name-text">{{ user.username }}</h2>
+                {% if user.id == current_user.id %}
+                  <span class="current-user-chip">You</span>
+                {% endif %}
+              </div>
+              <p class="user-email-text">{{ user.email }}</p>
+            </div>
+          </div>
 
-             {%else%}
-               
-                   <li>
-                            <strong>User</strong>
-                            <p>{{user.username}}</p>
-                            <p>{{user.email}}</p>
-                            <form method="POST"
-                              action="{{ url_for('make_admin', user_id=user.id) }}"
-                              style="display:inline;">
-                              <button type="submit"
-                                      onclick="return confirm('Are you sure you want to make this user an Admin?')">
-                                  Make Admin
-                              </button>
-                          </form>
-                   </li>
-               
-             {%endif%}
-            {%endfor%}
-          </ol>
-  </body>
+          <!-- Center: Role Defining Badges -->
+          <div class="user-role-center">
+            {% if user.is_main_admin %}
+              <span class="badge-role role-main-admin">★ Main Admin</span>
+            {% elif user.is_admin %}
+              <span class="badge-role role-admin">Admin</span>
+            {% else %}
+              <span class="badge-role role-user">User</span>
+            {% endif %}
+          </div>
 
-</html>
+          <!-- Far Right: Privilege Action Buttons -->
+          <div class="user-actions-right">
+            {% if user.is_admin %}
+              {% if user.id != current_user.id and not user.is_main_admin %}
+                <form method="POST" action="{{ url_for('remove_admin', user_id=user.id) }}" style="display:inline;">
+                  <button 
+                    type="submit" 
+                    class="btn-user-action btn-demote"
+                    onclick="return confirm('Are you sure you want to remove admin privileges from {{ user.username }}?');">
+                    Demote to User
+                  </button>
+                </form>
+              {% endif %}
+            {% else %}
+              <form method="POST" action="{{ url_for('make_admin', user_id=user.id) }}" style="display:inline;">
+                <button 
+                  type="submit" 
+                  class="btn-user-action btn-promote"
+                  onclick="return confirm('Are you sure you want to grant admin privileges to {{ user.username }}?');">
+                  Promote to Admin
+                </button>
+              </form>
+            {% endif %}
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- Empty State -->
+    <div style="text-align: center; padding: 4rem 1.5rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.75rem; color: #94A3B8;">👥</div>
+      <h2 style="font-size: 1.15rem; font-weight: 600; color: #1E293B; margin-bottom: 0.25rem;">No Users Registered</h2>
+      <p style="color: #64748B; font-size: 0.875rem;">Registered accounts will appear here for role assignment.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

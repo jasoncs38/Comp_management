@@ -5,68 +5,330 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Complaint & Feedback System{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+  <style>
+    /* Universal SVG UI Icon Helper */
+    .ui-icon {
+      width: 1.15rem;
+      height: 1.15rem;
+      display: inline-block;
+      vertical-align: middle;
+      flex-shrink: 0;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transition: stroke 0.15s ease;
+    }
+  </style>
 </head>
 <body>
 
   <!-- Top Navigation Header -->
   <header class="site-header">
-    <nav class="navbar">
-      <a href="{{ url_for('home') if current_user.is_authenticated else url_for('login') }}" class="brand-logo">
-        ASTU Complaint System
+    <div class="top-nav">
+      <!-- Brand Logo -->
+      <a href="{{ url_for('admin_dashboard') if current_user.is_authenticated and current_user.is_admin else (url_for('home') if current_user.is_authenticated else url_for('login')) }}" class="brand-logo" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+        <svg class="ui-icon" style="width: 1.35rem; height: 1.35rem;" viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span>Complaint System</span>
       </a>
 
-      <div class="nav-links">
-        {% if current_user.is_authenticated %}
-          {% if current_user.is_admin %}
-            <!-- Admin Navigation -->
-            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">Dashboard</a>
-            <a href="{{ url_for('all_complaints') }}" class="nav-item">Complaints</a>
-            <a href="{{ url_for('categories') }}" class="nav-item">Categories</a>
-            <a href="{{ url_for('all_users') }}" class="nav-item">Users</a>
-          {% else %}
-            <!-- User / Student Navigation -->
-            <a href="{{ url_for('home') }}" class="nav-item">My Complaints</a>
-            <a href="{{ url_for('complaint') }}" class="nav-item">+ New Complaint</a>
-            <a href="{{ url_for('notifications') }}" class="nav-item">
-              Notifications
-              {% if count and count > 0 %}
-                <span class="badge-count">{{ count }}</span>
+          <div class="nav-links desktop-nav">
+            {% if current_user.is_authenticated %}
+              {% if not current_user.is_admin %}
+                <!-- Notifications Icon (YouTube style) -->
+                <a href="{{ url_for('notifications') }}" class="btn-nav btn-nav-notif" title="Notifications" aria-label="Notifications">
+                  <svg class="ui-icon notif-bell" viewBox="0 0 24 24">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  {% if count and count > 0 %}
+                    <span class="badge-count">
+                      {{ count if count <= 99 else '99+' }}
+                    </span>
+                  {% endif %}
+                </a>
               {% endif %}
-            </a>
-          {% endif %}
-          <a href="{{ url_for('account') }}" class="nav-item">Account</a>
-          <a href="{{ url_for('logout') }}" class="btn-logout">Logout</a>
-        {% else %}
-          <!-- Unauthenticated Navigation -->
-          <a href="{{ url_for('login') }}" class="nav-item">Login</a>
-          <a href="{{ url_for('register') }}" class="nav-item">Register</a>
-        {% endif %}
-      </div>
-    </nav>
+
+              <!-- Account Icon -->
+              <a href="{{ url_for('account') }}" class="btn-nav" title="My Account" aria-label="My Account">
+                <svg class="ui-icon" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </a>
+
+              <!-- Logout Icon -->
+              <a href="{{ url_for('logout') }}" class="btn-nav btn-logout" title="Log Out" aria-label="Log Out">
+                <svg class="ui-icon" viewBox="0 0 24 24">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </a>
+            {% endif %}
+          </div>
+
+      <!-- Hamburger Button (Visible on Mobile) -->
+      {% if current_user.is_authenticated %}
+        <button class="hamburger-btn" id="mobileMenuBtn" aria-label="Open Navigation Menu" aria-expanded="false">
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+          <span class="hamburger-bar"></span>
+        </button>
+      {% endif %}
+    </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="page-container">
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-wrapper">
-          {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
-              {{ message }}
-            </div>
-          {% endfor %}
+  <!-- Mobile Drawer & Backdrop -->
+  {% if current_user.is_authenticated %}
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+      <div class="drawer-header">
+        <span class="drawer-title">Navigation</span>
+        <button class="drawer-close-btn" id="drawerCloseBtn" aria-label="Close Navigation Menu">&times;</button>
+      </div>
+
+      <div class="drawer-user-info">
+        <div class="drawer-avatar">{{ current_user.username[0] | upper }}</div>
+        <div>
+          <div class="drawer-username">{{ current_user.username }}</div>
+          <div class="drawer-email">{{ current_user.email }}</div>
         </div>
-      {% endif %}
-    {% endwith %}
+      </div>
 
-    <!-- Dynamic Content Block -->
-    {% block content %}{% endblock %}
-  </main>
+      <nav class="drawer-nav">
+        {% if current_user.is_admin %}
+          <div class="drawer-section-label">ADMIN CONTROLS</div>
+          <a href="{{ url_for('admin_dashboard') }}" class="drawer-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="9" rx="1"/>
+              <rect x="14" y="3" width="7" height="5" rx="1"/>
+              <rect x="14" y="12" width="7" height="9" rx="1"/>
+              <rect x="3" y="16" width="7" height="5" rx="1"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="{{ url_for('all_complaints') }}" class="drawer-link {% if request.endpoint in ['all_complaints', 'pending', 'in_progress', 'resolved'] %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+              <path d="M9 12h6M9 16h6"/>
+            </svg>
+            <span>Complaints</span>
+          </a>
+          <a href="{{ url_for('categories') }}" class="drawer-link {% if request.endpoint in ['categories', 'add_category', 'edit_category'] %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+              <line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+            <span>Categories</span>
+          </a>
+          <a href="{{ url_for('all_users') }}" class="drawer-link {% if request.endpoint == 'all_users' %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Users</span>
+          </a>
+        {% else %}
+          <div class="drawer-section-label">User PORTAL</div>
+          <a href="{{ url_for('home') }}" class="drawer-link {% if request.endpoint == 'home' %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span>My Complaints</span>
+          </a>
+          <a href="{{ url_for('complaint') }}" class="drawer-link {% if request.endpoint == 'complaint' %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>Submit Complaint</span>
+          </a>
+          <a href="{{ url_for('notifications') }}" class="drawer-link {% if request.endpoint == 'notifications' %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span>Notifications</span>
+            {% if count and count > 0 %}
+              <span class="badge-count drawer-badge">{{ count }}</span>
+            {% endif %}
+          </a>
+        {% endif %}
 
-  <footer class="site-footer">
-    <p>&copy; 2026 Adama Science and Technology University - CSE Department</p>
-  </footer>
+        <div class="drawer-section-label">ACCOUNT</div>
+        <a href="{{ url_for('account') }}" class="drawer-link {% if request.endpoint == 'account' %}active{% endif %}">
+          <svg class="ui-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span>Profile & Settings</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="drawer-link drawer-link-logout">
+          <svg class="ui-icon" style="stroke: #DC2626;" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </aside>
+  {% endif %}
+
+  <!-- Toast Flash Notification Layer -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="toast-popup-container">
+        {% for category, message in messages %}
+          <div class="toast-popup toast-{{ category }}">
+            <span class="toast-icon">
+              {% if category == 'success' %}
+                <svg class="ui-icon" style="stroke: #059669; width: 1.1rem; height: 1.1rem;" viewBox="0 0 24 24">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              {% elif category in ['danger', 'error'] %}
+                <svg class="ui-icon" style="stroke: #DC2626; width: 1.1rem; height: 1.1rem;" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              {% elif category == 'warning' %}
+                <svg class="ui-icon" style="stroke: #D97706; width: 1.1rem; height: 1.1rem;" viewBox="0 0 24 24">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              {% else %}
+                <svg class="ui-icon" style="stroke: #2563EB; width: 1.1rem; height: 1.1rem;" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+              {% endif %}
+            </span>
+            <span class="toast-text">{{ message }}</span>
+            <button type="button" class="toast-close-btn" onclick="this.parentElement.remove();">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Layout Container -->
+  <div class="app-layout {% if current_user.is_authenticated and current_user.is_admin %}admin-mode{% endif %}">
+    
+    {% if current_user.is_authenticated and current_user.is_admin %}
+      <!-- Admin Sidebar (Desktop only) -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <small>MANAGEMENT</small>
+        </div>
+        <nav class="sidebar-nav">
+          <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="9" rx="1"/>
+              <rect x="14" y="3" width="7" height="5" rx="1"/>
+              <rect x="14" y="12" width="7" height="9" rx="1"/>
+              <rect x="3" y="16" width="7" height="5" rx="1"/>
+            </svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="{{ url_for('all_complaints') }}" class="sidebar-link {% if request.endpoint in ['all_complaints', 'pending', 'in_progress', 'resolved'] %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+              <path d="M9 12h6M9 16h6"/>
+            </svg>
+            <span>Complaints</span>
+          </a>
+          <a href="{{ url_for('categories') }}" class="sidebar-link {% if request.endpoint in ['categories', 'add_category', 'edit_category'] %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+              <line x1="7" y1="7" x2="7.01" y2="7"/>
+            </svg>
+            <span>Categories</span>
+          </a>
+          <a href="{{ url_for('all_users') }}" class="sidebar-link {% if request.endpoint == 'all_users' %}active{% endif %}">
+            <svg class="ui-icon" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Users</span>
+          </a>
+        </nav>
+      </aside>
+    {% endif %}
+
+    <!-- Content Area -->
+    <main class="{% if current_user.is_authenticated and current_user.is_admin %}admin-content{% else %}page-container{% endif %}">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+
+  {% if not (current_user.is_authenticated and current_user.is_admin) %}
+    <footer class="site-footer">
+      <p>&copy; 2026 Adama Science and Technology University - CSE Department</p>
+    </footer>
+  {% endif %}
+
+  <!-- Drawer Script & Auto-Dismiss for Toast Notifications -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Mobile Drawer Navigation
+      const mobileBtn = document.getElementById('mobileMenuBtn');
+      const drawerCloseBtn = document.getElementById('drawerCloseBtn');
+      const drawer = document.getElementById('mobileDrawer');
+      const backdrop = document.getElementById('drawerBackdrop');
+
+      function openDrawer() {
+        if (!drawer) return;
+        drawer.classList.add('open');
+        backdrop.classList.add('show');
+        mobileBtn.setAttribute('aria-expanded', 'true');
+        drawer.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('open');
+        backdrop.classList.remove('show');
+        mobileBtn.setAttribute('aria-expanded', 'false');
+        drawer.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
+
+      if (mobileBtn) mobileBtn.addEventListener('click', openDrawer);
+      if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+      if (backdrop) backdrop.addEventListener('click', closeDrawer);
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && drawer && drawer.classList.contains('open')) {
+          closeDrawer();
+        }
+      });
+
+      // 2. Auto-fade Toast Notifications after 4 seconds
+      setTimeout(() => {
+        document.querySelectorAll('.toast-popup').forEach(toast => {
+          toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-10px) scale(0.95)';
+          setTimeout(() => toast.remove(), 400);
+        });
+      }, 4000);
+    });
+  </script>
 
 </body>
 </html>

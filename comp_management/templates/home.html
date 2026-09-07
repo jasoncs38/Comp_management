@@ -1,78 +1,77 @@
-<!DOCTYPE html>
-<html>
-    <head>
-     <title>Home</title>
-     <style>
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                vertical-align: center;
-                
-            }
+{% extends "base.html" %}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+{% block title %}My Complaints - ASTU Portal{% endblock %}
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
-            .complaint-container{
-                border-color: #40b9ff;
-                border: solid;
-                margin: 10px;
-                padding: 10px;
-                width:300px;
-            }
+{% block content %}
+<!-- Header Bar -->
+<div class="card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+  <div>
+    <h1 style="font-size: 1.5rem; font-weight: 700; color: #0F172A;">My Complaints</h1>
+    <p style="font-size: 0.875rem; color: #64748B; margin-top: 0.25rem;">
+      Track updates and administrative resolutions on your submitted reports.
+    </p>
+  </div>
+  <a href="{{ url_for('complaint') }}" class="btn btn-primary" style="font-weight: 600;">
+    + New
+  </a>
+</div>
 
-     </style>
-    </head>
-    <body>
-            {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
-        <a href="{{ url_for('account')}}">
-            Account
-        </a>
-        <a href="{{ url_for('notifications')}}">
-            Notifications({{count}})
-        </a>
-        <a href="{{ url_for('logout') }}">Log out</a> 
-        {%if complaints %}
+<!-- Complaints Grid -->
+{% if complaints %}
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem;">
+    {% for complaint in complaints %}
+      <div class="card complaint-card">
+        
+        <div>
+          <!-- Top Row: Category and Status Pill -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #2563EB; background: #EFF6FF; padding: 0.2rem 0.6rem; border-radius: 4px; border: 1px solid #BFDBFE;">
+              {{ complaint.category.name if complaint.category else 'General' }}
+            </span>
+            <span class="badge badge-{{ complaint.status.lower().replace(' ', '-') }}">
+              {{ complaint.status }}
+            </span>
+          </div>
 
-            <h1>My Complaints</h1>
-            {%for complaint in complaints%}
-            <div class="complaint-container">
-                
-                <strong>{{complaint.title}}</strong>
-                <p>Category:{{complaint.category.name}}</p>
-                <p>Status:{{complaint.status}}</p>
-                <small>{{complaint.date_posted.strftime('%Y-%m-%d')}}</small><br>
-                <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}">
-                    View Complaint
-                </a>
-                
-            </div>
-            {%endfor%}
+          <!-- Complaint Title -->
+          <h2 style="font-size: 1.1rem; font-weight: 600; color: #1E293B; margin-bottom: 0.5rem; line-height: 1.35;">
+            {{ complaint.title }}
+          </h2>
 
-        {% else %}
+          <!-- Content Preview Snippet -->
+          {% if complaint.content %}
+            <p style="font-size: 0.875rem; color: #64748B; line-height: 1.5; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {{ complaint.content }}
+            </p>
+          {% endif %}
+        </div>
 
-            <h1>My Complaints</h1>
-            <p>You haven't submitted any complaints yet.</p>
-        {%endif%}
-        <a href="{{url_for('complaint')}}"  >+ New Complaint</a>
-    </body>
-</html>
+        <!-- Card Footer -->
+        <div style="padding-top: 0.85rem; border-top: 1px solid #F1F5F9; display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+          <small style="color: #94A3B8; font-size: 0.8rem; font-weight: 500;">
+            {{ complaint.date_posted.strftime('%b %d, %Y') if complaint.date_posted else '' }}
+          </small>
+          
+          <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" class="btn-details">
+            View Details &rarr;
+          </a>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <!-- Empty State -->
+  <div class="card" style="text-align: center; padding: 4rem 1.5rem;">
+    <div style="font-size: 2.5rem; margin-bottom: 1rem; color: #94A3B8;">📋</div>
+    <h3 style="font-size: 1.15rem; font-weight: 600; color: #1E293B; margin-bottom: 0.4rem;">No complaints registered</h3>
+    <p style="color: #64748B; font-size: 0.9rem; max-width: 400px; margin: 0 auto 1.5rem auto;">
+      You have not logged any issues yet. Click the button below whenever you need to submit a campus service issue.
+    </p>
+    <a href="{{ url_for('complaint') }}" class="btn btn-primary">
+      Submit Your First Complaint
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,95 +1,116 @@
-<!DOCTYPE html>
-<html>
-    <head>
-     <title>Resolved</title>
-     <style>
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                vertical-align: center;
-                
-            }
+{% extends "base.html" %}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+{% block title %}Resolved Complaints - Admin Portal{% endblock %}
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
-            .complaint-container{
-                border-color: #40b9ff;
-                border: solid;
-                margin: 10px;
-                padding: 10px;
-                width:300px;
-            }
-            .complaints-header{
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                width:400px;
-                margin-left: 100px;
-            }
+{% block content %}
+<div class="admin-registry-wrapper">
 
-     </style>
-    </head>
-    <body>
-            {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
+  <!-- Header Card with Title on Top and Filter Buttons Below -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="admin-page-header">
+      
+      <!-- Top Text Block -->
+      <div>
+        <h1 class="page-title">Resolved Complaints</h1>
+        <p class="page-subtitle">Archive of resolved campus issues and closed support complaints.</p>
+      </div>
 
-                        <div class="complaints-header">
-                            <a href="{{ url_for('admin_dashboard') }}">Home</a> 
-                            <a class="all" href="{{ url_for('all_complaints') }}">
-                                All ({{ all_count }})
-                            </a>
-                            <a class="pending" href="{{ url_for('pending') }}">
-                                Pending ({{ pending_count }})
-                            </a>
-                            <a class="in-progress" href="{{ url_for('in_progress') }}">
-                                In Progress ({{ in_progress_count }})
-                            </a>
-                            <a class="resolved" href="{{ url_for('resolved') }}">
-                                Resolved ({{ resolved_count }})
-                            </a>
-                        </div>
-        {%if complaints %}
+      <!-- Filter Buttons Placed Below Title -->
+      <div class="filter-pills-bar">
+        <!-- All -->
+        <a href="{{ url_for('all_complaints') }}" class="filter-pill pill-all {% if request.endpoint == 'all_complaints' %}active{% endif %}">
+          <span>All</span>
+          <span class="pill-count">{{ all_count }}</span>
+        </a>
 
-                        <h1>Resolved Complaints</h1>
-                        {%for complaint in complaints%}
-                        <div class="complaint-container">
-                            <P><strong>{{complaint.author.username}}</strong></P>
-                            
-                            <strong>{{complaint.title}}</strong>
-                            <p>Category:{{complaint.category.name}}</p>
-                            <p>Status:{{complaint.status}}</p>
-                            <small>{{complaint.date_posted.strftime('%Y-%m-%d')}}</small><br>
-                            <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}">
-                                View Complaint
-                            </a>
-                            
-                        </div>
-                        {%endfor%}
+        <!-- Pending (Amber/Yellow) -->
+        <a href="{{ url_for('pending') }}" class="filter-pill pill-pending {% if request.endpoint == 'pending' %}active{% endif %}">
+          <span>Pending</span>
+          <span class="pill-count">{{ pending_count }}</span>
+        </a>
+
+        <!-- In Progress (Indigo/Purple) -->
+        <a href="{{ url_for('in_progress') }}" class="filter-pill pill-progress {% if request.endpoint == 'in_progress' %}active{% endif %}">
+          <span>In Progress</span>
+          <span class="pill-count">{{ in_progress_count }}</span>
+        </a>
+
+        <!-- Resolved (Green - Active) -->
+        <a href="{{ url_for('resolved') }}" class="filter-pill pill-resolved active">
+          <span>Resolved</span>
+          <span class="pill-count">{{ resolved_count }}</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Wide Complaint Cards List -->
+  {% if complaints %}
+    <div class="admin-complaints-list">
+      {% for complaint in complaints %}
+        <div class="card admin-complaint-card">
           
+          <!-- Top Row: Student + Category (Left), Colored Status Badge (Right) -->
+          <div class="admin-card-top">
+            <div class="admin-card-meta-left">
+              <span class="complaint-author">
+                <span class="user-avatar-circle">{{ complaint.author.username[0] | upper }}</span>
+                <strong>{{ complaint.author.username }}</strong>
+              </span>
+              <span class="complaint-category-tag">
+                {{ complaint.category.name if complaint.category else 'General' }}
+              </span>
+            </div>
 
-        {% else %}
+            <!-- Top Right Colored Status Pill -->
+            <span class="badge badge-resolved">
+              {{ complaint.status }}
+            </span>
+          </div>
 
-            <h1>No Complaints Yet.</h1>
-        {%endif%}
-    </body>
-</html>            
+          <!-- Complaint Title & Content Preview -->
+          <div class="admin-card-body">
+            <h2 class="admin-card-title">
+              {{ complaint.title }}
+              {% if complaint.image_file %}
+                <span class="attachment-chip" title="Includes photo attachment">📷 Photo</span>
+              {% endif %}
+            </h2>
+            {% if complaint.content %}
+              <p class="admin-card-snippet">
+                {{ complaint.content }}
+              </p>
+            {% endif %}
+          </div>
+
+          <!-- Bottom Row: Date (Left) & Centered Review Button -->
+          <div class="admin-card-footer">
+            <div class="admin-card-date">
+              {{ complaint.date_posted.strftime('%b %d, %Y - %I:%M %p') if complaint.date_posted else '' }}
+            </div>
+
+            <div class="admin-card-action">
+              <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" class="btn-review-complaint">
+                Review Complaint &rarr;
+              </a>
+            </div>
             
+            <div class="admin-card-spacer"></div>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- Empty State -->
+    <div class="card" style="text-align: center; padding: 4rem 1.5rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.75rem; color: #94A3B8;">✅</div>
+      <h2 style="font-size: 1.15rem; font-weight: 600; color: #1E293B; margin-bottom: 0.25rem;">No Resolved Complaints</h2>
+      <p style="color: #64748B; font-size: 0.875rem;">Complaints marked as completed and resolved will show up here.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

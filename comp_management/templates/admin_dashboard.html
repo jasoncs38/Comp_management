@@ -1,56 +1,113 @@
-<!DOCTYPE html>
-<html>
-    <head>
-     <title>Home</title>
-     <style>
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                vertical-align: center;
-                
-            }
+{% extends "base.html" %}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+{% block title %}Admin Dashboard{% endblock %}
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
-            .complaint-container{
-                border-color: #40b9ff;
-                border: solid;
-                margin: 10px;
-                padding: 10px;
-                width:300px;
-            }
+{% block content %}
+<div class="dashboard-viewport">
 
-     </style>
-    </head>
-    <body>
-            {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
-            <a href="{{ url_for('account')}}">
-                Account
-            </a>
-            <a href="{{ url_for('logout') }}">Log out</a> 
-           <P><a href="{{url_for('all_complaints')}}">Complaints</a></P>
-           <p><a href="{{url_for('categories')}}">Categories</a></p>
-           <p><a href="{{url_for('all_users')}}">Users</a></p>
-           
-    </body>
-</html>
+  <!-- Top Hero Header -->
+  <div class="dashboard-hero">
+    <div>
+      <h1 class="hero-title">System Overview</h1>
+      <p class="hero-subtitle">Real-time breakdown campus complaints and user distribution.</p>
+    </div>
+    <div class="admin-pill">
+      <span class="pulse-dot"></span>
+      <span>System Administrator</span>
+    </div>
+  </div>
+
+  <!-- 5-Stat Cards Bar -->
+  <div class="stats-showcase">
+
+    <!-- Total Complaints -->
+    <div class="stat-tile tile-total">
+      <div class="stat-top">
+        <span class="stat-caption">Total Received</span>
+        <div class="stat-icon-wrap">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+      </div>
+      <div class="stat-digit">{{ total_complaints }}</div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill" style="--bar-width: 100%;"></div>
+      </div>
+      <span class="stat-footnote">All recorded tickets</span>
+    </div>
+
+    <!-- Pending Review -->
+    <div class="stat-tile tile-pending">
+      <div class="stat-top">
+        <span class="stat-caption">Pending</span>
+        <div class="stat-icon-wrap">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+        </div>
+      </div>
+      <div class="stat-digit">{{ pending_complaints }}</div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill" style="--bar-width: {{ pending_pct ~ '%' }};"></div>
+      </div>
+      <span class="stat-footnote">Needs review</span>
+    </div>
+
+    <!-- In Progress -->
+    <div class="stat-tile tile-progress">
+      <div class="stat-top">
+        <span class="stat-caption">In Progress</span>
+        <div class="stat-icon-wrap">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        </div>
+      </div>
+      <div class="stat-digit">{{ in_progress_complaints }}</div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill" style="--bar-width: {{ in_progress_pct ~ '%' }};"></div>
+      </div>
+      <span class="stat-footnote">Under investigation</span>
+    </div>
+
+    <!-- Resolved -->
+    <div class="stat-tile tile-resolved">
+      <div class="stat-top">
+        <span class="stat-caption">Resolved</span>
+        <div class="stat-icon-wrap">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <div class="stat-digit">{{ resolved_complaints }}</div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill" style="--bar-width: {{ resolved_pct ~ '%' }};"></div>
+      </div>
+      <span class="stat-footnote">Closed successfully</span>
+    </div>
+
+    <!-- Total Users -->
+    <div class="stat-tile tile-users">
+      <div class="stat-top">
+        <span class="stat-caption">Total Users</span>
+        <div class="stat-icon-wrap">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+      </div>
+      <div class="stat-digit">{{ total_users }}</div>
+      <div class="stat-bar-track">
+        <div class="stat-bar-fill" style="--bar-width: 100%;"></div>
+      </div>
+      <span class="stat-footnote">Active accounts</span>
+    </div>
+
+  </div>
+
+  <!-- Resolution Rate Progress Summary Banner -->
+  <div class="resolution-banner">
+    <div class="resolution-info">
+      <h3>Overall System Resolution Rate</h3>
+      <p>Proportion of campus issues settled compared to lifetime reported cases.</p>
+    </div>
+    <div class="resolution-metric">
+      <span class="rate-percentage">{{ resolution_rate }}%</span>
+      <span class="rate-label">Resolved Ratio</span>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

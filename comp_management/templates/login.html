@@ -1,131 +1,75 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>login</title>
-        
-        <style>
-            .username-bar{
-                display: block;
-                margin-bottom: 10px;
-                padding: 6px;
-                width: 200px;
-            }
-            .email-bar{
+{% extends "base.html" %}
 
-                display: block;
-                margin-bottom: 10px;
-                padding: 6px;
-                width: 200px;
+{% block title %}Sign In {% endblock %}
 
-            }
-            .password-bar{
-                display: block;
-                margin-bottom: 10px;
-                padding: 6px;
-                width: 200px;
-            }
-            .confirm_password-bar{
-                display: block;
-                margin-bottom: 10px;
-                padding: 6px;
-                width: 200px;
-            }
-            .field-error {
-                color: red;
-                font-size: 13px;
-                margin-top: -5px;
-                margin-bottom: 10px;
-            }
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
 
-            .error-input {
-                border: 1px solid red;
-            }
+    <div class="auth-header">
+      <div class="auth-icon-badge">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+      </div>
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-subtitle">Sign in to your Complaint system Portal account</p>
+    </div>
 
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                
-            }
+    <form method="POST" action="{{ url_for('login') }}" novalidate>
+      {{ form.hidden_tag() }}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+      <!-- Email Field -->
+      <div class="form-group">
+        {{ form.email.label(class="form-label") }}
+        {% if form.email.errors %}
+          {{ form.email(class="form-control error-input", placeholder="Enter your email") }}
+          <div class="field-error">
+            {% for error in form.email.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.email(class="form-control", placeholder="Enter your email") }}
+        {% endif %}
+      </div>
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
+      <!-- Password Field -->
+      <div class="form-group">
+        {{ form.password.label(class="form-label") }}
+        {% if form.password.errors %}
+          {{ form.password(class="form-control error-input", placeholder="Enter your password") }}
+          <div class="field-error">
+            {% for error in form.password.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.password(class="form-control", placeholder="Enter your password") }}
+        {% endif %}
+      </div>
 
-        </style>
-    </head>
-    <body>
-        <div class="sign-in-container">
-<form method="POST" action="" novalidate>
-           {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
-            <h1>Sign In</h1>
-            {{ form.hidden_tag() }}
+      <!-- Remember Me & Forgot Password Options -->
+      <div class="auth-options">
+        <label class="remember-label">
+          {{ form.remember(class="checkbox-input") }}
+          <span>Remember me</span>
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
 
-            {{ form.email.label }}
-            {%if form.email.errors%}
-               {{form.email(class="email-bar error-input",placeholder="Email") }}
-               <div class="field-error">
-                   {%for error in form.email.errors%}
-                     <span>{{error}}</span>
-                    {%endfor%}
-               </div>
-               {%else%}
-                    {{ form.email(class="email-bar",placeholder="Email") }}
-            {%endif%}
+      <!-- Submit Button -->
+      <div class="form-group" style="margin-top: 1.5rem;">
+        {{ form.submit(class="btn btn-primary btn-block") }}
+      </div>
 
-            {{ form.password.label }}
-            {%if form.password.errors%}
-               {{form.password(class="password-bar error-input",placeholder="Password") }}
-               <div class="field-error">
-                   {%for error in form.password.errors%}
-                     <span>{{error}}</span>
-                    {%endfor%}
-               </div>
-               {%else%}
-                    {{ form.password(class="password-bar",placeholder="Password") }}
-            {%endif%}
+      <!-- Registration Link -->
+      <p class="auth-footer-text">
+        Don't have an account?
+        <a href="{{ url_for('register') }}" class="auth-link">Sign Up Now</a>
+      </p>
 
-            <div class="options">
-                <label class="remember">
-                    {{ form.remember }}
-                    <span>Remember me</span>
-                </label>
-                <a href="#" class="forgot-password">
-                    Forgot Password?
-                </a>
-
-            </div>
-
-
-            {{ form.submit }}
-
-            <p class="signup">
-                Don't have an account?
-                <a href="{{ url_for('register') }}">Sign Up Now</a>
-            </p>
-
-</form>
-
-
-        </div>
-
-    </body>
-</html>
+    </form>
+  </div>
+</div>
+{% endblock %}

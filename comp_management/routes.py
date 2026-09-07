@@ -6,6 +6,19 @@ from comp_management import app,db,bcrypt
 from comp_management.forms import ComplaintForm,LoginForm,RegistrationForm,ResponseForm,ResolveForm,CategoryForm,UpdateAccountForm
 from comp_management.models import User, Complaint, Category, Response, Notification
 from flask_login import login_user,login_required,logout_user,current_user
+from comp_management.models import Notification  # Adjust this import to match your project
+
+@app.context_processor
+def inject_notifications_count():
+    if current_user.is_authenticated and not current_user.is_admin:
+        # Query unread notifications for the currently logged-in user
+        unread_count = Notification.query.filter_by(
+            user_id=current_user.id, 
+            is_read=False
+        ).count()
+        return dict(count=unread_count)
+    return dict(count=0)
+
 
 def get_complaint_counts():
     return {
@@ -127,12 +140,44 @@ def view_complaint(complaint_id):
 
     return render_template('view_complaint.html',complaint=complaint,resolve_form=resolve_form)
 
-@app.route('/admin',methods=['GET','POST'])
+
+@app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin_dashboard():
     if not current_user.is_admin:
         abort(403)
-    return render_template('admin_dashboard.html')
+
+    total_complaints = Complaint.query.count()
+    pending_complaints = Complaint.query.filter_by(status='Pending').count()
+    in_progress_complaints = Complaint.query.filter_by(status='In Progress').count()
+    resolved_complaints = Complaint.query.filter_by(status='Resolved').count()
+    total_users = User.query.count()
+
+    # Precalculate percentages as integers
+    if total_complaints > 0:
+        pending_pct = int(round((pending_complaints / total_complaints) * 100))
+        in_progress_pct = int(round((in_progress_complaints / total_complaints) * 100))
+        resolved_pct = int(round((resolved_complaints / total_complaints) * 100))
+        resolution_rate = round((resolved_complaints / total_complaints) * 100, 1)
+    else:
+        pending_pct = 0
+        in_progress_pct = 0
+        resolved_pct = 0
+        resolution_rate = 0.0
+
+    return render_template(
+        'admin_dashboard.html',
+        total_complaints=total_complaints,
+        pending_complaints=pending_complaints,
+        in_progress_complaints=in_progress_complaints,
+        resolved_complaints=resolved_complaints,
+        total_users=total_users,
+        pending_pct=pending_pct,
+        in_progress_pct=in_progress_pct,
+        resolved_pct=resolved_pct,
+        resolution_rate=resolution_rate
+    )
+
 
 @app.route('/admin/complaints',methods=['GET','POST'])
 @login_required
@@ -216,6 +261,24 @@ def categories():
         abort(403)
     categories=Category.query.all()
     return render_template('categories.html',categories=categories)
+
+@app.route("/admin/category/<int:cat_id>/complaints")
+@login_required
+def category_complaints(cat_id):
+    # Restrict to admins only
+    if not current_user.is_admin:
+        abort(403)
+        
+    category = Category.query.get_or_404(cat_id)
+    # Fetch complaints under this category, ordered newest first
+    complaints = Complaint.query.filter_by(category_id=category.id)\
+                                .order_by(Complaint.date_posted.desc())\
+                                .all()                        
+    return render_template(
+        'category_complaints.html', 
+        category=category, 
+        complaints=complaints
+    )
 
 @app.route('/categories/add',methods=['GET','POST'])
 @login_required

@@ -1,86 +1,67 @@
-<!DOCTYPE html>
-<html>
-    <head>
-     <title>Home</title>
-     <style>
-            .flash-message {
-                display: inline-block;
-                padding: 12px 16px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                vertical-align: center;
-                
-            }
+{% extends "base.html" %}
 
-            .flash-message.success {
-                background-color: #e8f7e8;
-                color: #237a23;
-                border: 1px solid #a8d8a8;
-            }
+{% block title %}Notifications - ASTU Portal{% endblock %}
 
-            .flash-message.danger {
-                background-color: #fdeaea;
-                color: #b42323;
-                border: 1px solid #f0aaaa;
-            }
-            .complaint-container {
-                border-color: #40b9ff;
-                border: solid;
-                margin: 10px;
-                padding: 10px;
-                width: 300px;
-                background-color: white;
-            }
-            .complaint-container.unread {
-                background-color: #e6f4ff;
-            }
-            .complaints-header{
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                width:400px;
-                margin-left: 100px;
-            }
-            .unread {
-                font-weight: bold;
-                border-width: 2px;
-            }
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
 
-     </style>
-    </head>
-    <body>
-            {% with messages=get_flashed_messages(with_categories=true)%}
-              {%if messages%}
-                    {%for category,message in messages%}
-                        <div class="flash-message {{category}}">
-                            {{message}}
-                        </div>
-                    {%endfor%}
-              {%endif%}
-           {%endwith%}
-        <a href="{{ url_for('home') }}">Home</a> 
-        {%if all_notifications %}
-                        <h1>Notifications</h1>
-                        {% for notification in all_notifications %}
-                            <div class="complaint-container
-                                {% if not notification.is_read %}unread{% endif %}">
-                                <a href="{{ url_for('view_notification',notification_id=notification.id) }}">
-                                    {{ notification.message }}
-                                </a>
-                                <small>
-                                    {{ notification.date_created.strftime('%Y-%m-%d') }}
-                                </small>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #E2E8F0;">
+    <div>
+      <h1 style="font-size: 1.5rem; font-weight: 700; color: #0F172A;">Notifications</h1>
+      <p style="font-size: 0.875rem; color: #64748B; margin-top: 0.25rem;">
+        Updates regarding responses and resolution progress on your filed complaints.
+      </p>
+    </div>
+    <a href="{{ url_for('home') }}" class="btn-details">
+      &larr; Back to Complaints
+    </a>
+  </div>
 
-                            </div>
-
-                        {% endfor %}
-          
-
-        {% else %}
-
-            <h1>No Notifications Yet.</h1>
-        {%endif%}
-    </body>
-</html>            
+<!-- Notification Feed -->
+      {% if all_notifications %}
+        <div class="notification-list">
+          {% for notification in all_notifications %}
+            {% set is_resolved = 'resolved' in notification.message.lower() %}
             
+            <a href="{{ url_for('view_notification', notification_id=notification.id) }}" 
+              class="notification-item {% if not notification.is_read %}unread{% endif %} {% if is_resolved %}notif-resolved{% endif %}">
+              
+              <div class="notif-left">
+                <span class="notif-status-indicator"></span>
+                <div>
+                  <p class="notif-message">{{ notification.message }}</p>
+                  <span class="notif-date">
+                    {{ notification.date_created.strftime('%b %d, %Y - %I:%M %p') if notification.date_created else '' }}
+                  </span>
+                </div>
+              </div>
+
+              <span class="notif-action-pill">
+                {% if not notification.is_read %}
+                  New &rarr;
+                {% else %}
+                  View &rarr;
+                {% endif %}
+              </span>
+
+            </a>
+          {% endfor %}
+        </div>
+
+  {% else %}
+    <!-- Empty State -->
+    <div style="text-align: center; padding: 3.5rem 1.5rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.75rem; color: #94A3B8;">🔔</div>
+      <h2 style="font-size: 1.15rem; font-weight: 600; color: #1E293B; margin-bottom: 0.25rem;">No Notifications Yet</h2>
+      <p style="color: #64748B; font-size: 0.875rem; max-width: 360px; margin: 0 auto 1.5rem auto;">
+        You're completely caught up. Updates on your submitted complaints will appear here.
+      </p>
+      <a href="{{ url_for('home') }}" class="btn btn-primary btn-sm">
+        Go to My Complaints
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

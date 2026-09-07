@@ -1,7 +1,35 @@
+{% extends "base.html" %}
 
-    <div class="content-section">
-        <h1>Access Denied(403)</h1>
-        <p>Sorry, you don't have permission to access this page. If you believe this is a mistake, please log in with the appropriate account or contact the site administrator.</p>
+{% block title %}403 Forbidden - ASTU Portal{% endblock %}
+
+{% block content %}
+<div class="error-page-wrapper">
+  <div class="card error-card">
+    
+    <div class="error-badge-circle badge-403">
+      <span>403</span>
     </div>
-        
 
+    <h1 class="error-heading">Access Denied</h1>
+    <p class="error-description">
+      You don't have permission to access this administrative resource. If you believe this is a mistake, please sign in with an authorized account or contact the ASTU system administrator.
+    </p>
+
+    <div class="error-actions">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('admin_dashboard') if current_user.is_admin else url_for('home') }}" class="btn btn-primary">
+          &larr; Return to Dashboard
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-primary">
+          Log In
+        </a>
+        <a href="{{ url_for('home') }}" class="btn btn-sm btn-cancel">
+          Home
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

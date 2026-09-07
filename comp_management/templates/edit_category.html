@@ -1,50 +1,57 @@
-                
-<!DOCTYPE html>
-<html>
-  <head>
-      <title>Edit category</title>
-        <style>
+{% extends "base.html" %}
 
-            .name-bar{
-                display: block;
-                margin-bottom: 10px;
-            }
-            
-            .field-error {
-                color: red;
-                font-size: 13px;
-                margin-top: -5px;
-                margin-bottom: 10px;
-            }
+{% block title %}Edit Category - Admin Portal{% endblock %}
 
-            .error-input {
-                border: 1px solid red;
-            }
+{% block content %}
+<div class="form-page-wrapper">
+  <div class="card form-page-card" style="max-width: 480px;">
 
-        </style>
-  </head>
-  <body>
-    <a href="{{ url_for('categories') }}">Back</a>
-                <form method="POST" action="" novalidate >
+    <!-- Back Navigation -->
+    <div style="margin-bottom: 1.25rem;">
+      <a href="{{ url_for('categories') }}" class="btn-back">
+        &larr; Back to Categories
+      </a>
+    </div>
 
-                            <h1>Edit Category</h1>
-                            {{ form.hidden_tag() }}
+    <!-- Header -->
+    <div class="form-page-header">
+      <div class="auth-icon-badge" style="width: 44px; height: 44px; margin-bottom: 0.75rem;">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+        </svg>
+      </div>
+      <h1 class="auth-title">Edit Category</h1>
+      <p class="auth-subtitle">Update department designation and routing label.</p>
+    </div>
 
-                            {{ form.name.label }}
-                            {%if form.name.errors%}
-                            {{form.name(class="name-bar error-input",placeholder="Name") }}
-                            <div class="field-error">
-                                {%for error in form.name.errors%}
-                                    <span>{{error}}</span>
-                                    {%endfor%}
-                            </div>
-                            {%else%}
-                                    {{ form.name(class="name-bar",placeholder="Name") }}
-                            {%endif%}
+    <!-- Form -->
+    <form method="POST" action="" novalidate>
+      {{ form.hidden_tag() }}
 
-                            {{ form.submit }}
+      <div class="form-group">
+        {{ form.name.label(class="form-label") }}
+        {% if form.name.errors %}
+          {{ form.name(class="form-control error-input", placeholder="Category Name") }}
+          <div class="field-error">
+            {% for error in form.name.errors %}
+              <span>{{ error }}</span>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ form.name(class="form-control", placeholder="Category Name") }}
+        {% endif %}
+      </div>
 
-                </form>
-  </body>
+      <!-- Action Buttons -->
+      <div class="form-actions-row" style="margin-top: 1.5rem;">
+        {{ form.submit(class="btn btn-primary btn-submit-complaint", value="Save Changes") }}
+        <a href="{{ url_for('categories') }}" class="btn btn-sm btn-cancel">
+          Cancel
+        </a>
+      </div>
 
-</html>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} Complaints - Admin Portal{% endblock %}
+
+{% block content %}
+<div class="admin-registry-wrapper">
+
+  <!-- Top Navigation & Header -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div style="margin-bottom: 0.85rem;">
+      <a href="{{ url_for('categories') }}" class="btn-back">
+        &larr; Back to All Categories
+      </a>
+    </div>
+
+    <div class="admin-page-header" style="flex-direction: row; justify-content: space-between; align-items: center;">
+      <div>
+        <h1 class="page-title">Complaints in "{{ category.name }}"</h1>
+        <p class="page-subtitle">All user complaints routed to this department.</p>
+      </div>
+
+      <span class="user-total-badge">
+        Total: <strong>{{ complaints|length }}</strong>
+      </span>
+    </div>
+  </div>
+
+  <!-- Complaint Cards List -->
+  {% if complaints %}
+    <div class="admin-complaints-list">
+      {% for complaint in complaints %}
+        <div class="card admin-complaint-card">
+          
+          <!-- Top Row: Student + Category Tag (Left), Colored Status Badge (Right) -->
+          <div class="admin-card-top">
+            <div class="admin-card-meta-left">
+              <span class="complaint-author">
+                <span class="user-avatar-circle">{{ complaint.author.username[0] | upper }}</span>
+                <strong>{{ complaint.author.username }}</strong>
+              </span>
+              <span class="complaint-category-tag">
+                {{ category.name }}
+              </span>
+            </div>
+
+            <!-- Top Right Colored Status Badge -->
+            <span class="badge badge-{{ complaint.status.lower().replace(' ', '-') }}">
+              {{ complaint.status }}
+            </span>
+          </div>
+
+          <!-- Title & Content Snippet -->
+          <div class="admin-card-body">
+            <h2 class="admin-card-title">
+              {{ complaint.title }}
+              {% if complaint.image_file %}
+                <span class="attachment-chip" title="Includes photo attachment">📷 Photo</span>
+              {% endif %}
+            </h2>
+            {% if complaint.content %}
+              <p class="admin-card-snippet">
+                {{ complaint.content }}
+              </p>
+            {% endif %}
+          </div>
+
+          <!-- Bottom Row: Date Left, Centered Action Button -->
+          <div class="admin-card-footer">
+            <div class="admin-card-date">
+              {{ complaint.date_posted.strftime('%b %d, %Y - %I:%M %p') if complaint.date_posted else '' }}
+            </div>
+
+            <div class="admin-card-action">
+              <a href="{{ url_for('view_complaint', complaint_id=complaint.id) }}" class="btn-review-complaint">
+                Review Complaint &rarr;
+              </a>
+            </div>
+
+            <div class="admin-card-spacer"></div>
+          </div>
+
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- Empty State -->
+    <div class="card" style="text-align: center; padding: 4rem 1.5rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.75rem; color: #94A3B8;">🏷️</div>
+      <h2 style="font-size: 1.15rem; font-weight: 600; color: #1E293B; margin-bottom: 0.25rem;">No Complaints Found</h2>
+      <p style="color: #64748B; font-size: 0.875rem;">There are currently no tickets filed under the {{ category.name }} category.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

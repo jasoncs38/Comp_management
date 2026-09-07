@@ -1,7 +1,35 @@
+{% extends "base.html" %}
 
-    <div class="content-section">
-        <h1>Something went wrong(500)</h1>
-        <p>We are experiencing some trouble on our end. Please try again later.</p>
+{% block title %}500 Server Error - ASTU Portal{% endblock %}
+
+{% block content %}
+<div class="error-page-wrapper">
+  <div class="card error-card">
+    
+    <div class="error-badge-circle badge-500">
+      <span>500</span>
     </div>
-        
 
+    <h1 class="error-heading">Something Went Wrong</h1>
+    <p class="error-description">
+      We encountered an unexpected error on our server. The CSE technical team has been notified. Please try reloading the page or check back in a few minutes.
+    </p>
+
+    <div class="error-actions">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('admin_dashboard') if current_user.is_admin else url_for('home') }}" class="btn btn-primary">
+          &larr; Return to Home
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-primary">
+          Return to Login
+        </a>
+      {% endif %}
+      <a href="javascript:location.reload();" class="btn btn-sm btn-cancel">
+        ↻ Reload Page
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

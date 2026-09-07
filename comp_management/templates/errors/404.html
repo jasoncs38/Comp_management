@@ -1,7 +1,32 @@
+{% extends "base.html" %}
 
-    <div class="content-section">
-        <h1> Oops. Page Not Found(404)</h1>
-        <p>The page you are looking for doesn't exit. You can return to the homepage or use the navigation menu to continue browsing.</p>
+{% block title %}404 Not Found - ASTU Portal{% endblock %}
+
+{% block content %}
+<div class="error-page-wrapper">
+  <div class="card error-card">
+    
+    <div class="error-badge-circle badge-404">
+      <span>404</span>
     </div>
-        
 
+    <h1 class="error-heading">Oops! Page Not Found</h1>
+    <p class="error-description">
+      The page or ticket you are looking for does not exist, may have been deleted, or had its address changed.
+    </p>
+
+    <div class="error-actions">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('admin_dashboard') if current_user.is_admin else url_for('home') }}" class="btn btn-primary">
+          &larr; Back to Safety
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn btn-primary">
+          Back to Login
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
